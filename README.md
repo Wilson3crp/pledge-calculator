@@ -1,2 +1,2 @@
 # pledge-calculator
-維持率計算器
+Pledge Margin Ratio Calculator
