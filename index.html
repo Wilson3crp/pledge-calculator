@@ -3,209 +3,408 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>股票質押追繳計算器</title>
+<title>投資風險管理工具組</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #f5f4f0; color: #1a1a18;
-    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;
+    min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem;
   }
-  .container { background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.12); padding: 2rem; width: 100%; max-width: 560px; }
-  h1 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; }
-  .slider-row { margin-bottom: 1rem; }
-  .slider-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
-  .slider-name { color: #5f5e5a; }
-  .slider-val { font-weight: 500; }
-  input[type=range] { width: 100%; height: 4px; border-radius: 2px; -webkit-appearance: none; appearance: none; background: #d3d1c7; outline: none; cursor: pointer; }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #1a1a18; cursor: pointer; }
-  .input-row { margin-bottom: 1.25rem; }
-  .input-label { font-size: 14px; color: #5f5e5a; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-  .unit-btns { display: flex; gap: 4px; }
-  .unit-btn { padding: 4px 10px; font-size: 12px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 6px; background: #f5f4f0; color: #5f5e5a; cursor: pointer; }
-  .unit-btn.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-  .text-input { width: 100%; padding: 8px 12px; font-size: 15px; border: 0.5px solid rgba(0,0,0,0.2); border-radius: 8px; background: #f5f4f0; color: #1a1a18; outline: none; }
-  .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .sub-label { font-size: 12px; color: #888780; margin-bottom: 4px; }
-  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1.25rem 0; }
+  .container {
+    background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.12);
+    padding: 2rem; width: 100%; max-width: 560px;
+  }
+
+  /* Tabs */
+  .tab-bar { display: flex; border-bottom: 0.5px solid rgba(0,0,0,0.12); margin-bottom: 1.5rem; }
+  .tab {
+    padding: 8px 20px; font-size: 14px; cursor: pointer; color: #888780;
+    border-bottom: 2px solid transparent; margin-bottom: -0.5px;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .tab.active { color: #1a1a18; border-bottom: 2px solid #1a1a18; font-weight: 500; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Labels */
+  .section-label { font-size: 13px; color: #5f5e5a; margin-bottom: 4px; font-weight: 500; }
+  .section-hint { font-size: 12px; color: #888780; margin-bottom: 10px; }
+  .divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 1.25rem 0; }
+
+  /* Inputs */
+  .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .input-row label { font-size: 14px; color: #1a1a18; flex: 1; }
+  input[type="number"], input[type="range"] { font-family: inherit; }
+  input[type="number"] {
+    padding: 8px 12px; font-size: 15px; border: 0.5px solid rgba(0,0,0,0.2);
+    border-radius: 8px; background: #f5f4f0; color: #1a1a18; outline: none; width: 150px;
+  }
+  input[type="number"]:focus { border-color: rgba(0,0,0,0.4); }
+  input[type="range"] {
+    width: 100%; height: 4px; border-radius: 2px;
+    -webkit-appearance: none; appearance: none;
+    background: #d3d1c7; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 18px; height: 18px; border-radius: 50%; background: #1a1a18; cursor: pointer;
+  }
+  input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Gauge */
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; margin: 0.5rem 0 0.75rem; }
+  .lev-value { font-size: 32px; font-weight: 500; margin-top: -8px; }
+  .lev-unit { font-size: 13px; color: #888780; margin-top: 2px; }
+
+  /* Bar */
+  .bar-track {
+    height: 12px; border-radius: 99px; background: #f5f4f0;
+    position: relative; margin: 6px 0 4px; overflow: visible;
+  }
+  .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.3s; }
+  .bar-markers { display: flex; justify-content: space-between; font-size: 11px; color: #888780; margin-top: 2px; }
+
+  /* Warning */
+  .warn-box {
+    display: none; margin-top: 1rem; padding: 0.75rem 1rem;
+    border-radius: 8px; background: #FCEBEB; font-size: 13px; color: #A32D2D;
+  }
+
+  /* Metric cards */
+  .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1rem 0; }
   .mc-card { background: #f5f4f0; border-radius: 8px; padding: 1rem; }
   .mc-label { font-size: 13px; color: #5f5e5a; margin-bottom: 4px; }
   .mc-value { font-size: 22px; font-weight: 500; }
   .mc-unit { font-size: 12px; color: #888780; margin-top: 2px; }
-  .section-title { font-size: 13px; color: #5f5e5a; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-  .legend { display: flex; gap: 10px; }
-  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #888780; }
-  .legend-dot { width: 8px; height: 8px; }
-  .bar-wrap { position: relative; }
-  .bar-track { height: 22px; background: #f5f4f0; overflow: visible; margin: 6px 0 0; position: relative; }
-  .bar-fill { height: 100%; transition: width 0.2s, background 0.2s; }
-  .vline { position: absolute; top: -4px; width: 2px; height: 30px; border-radius: 1px; transform: translateX(-50%); pointer-events: none; }
-  .bar-ticks { position: relative; height: 22px; margin-top: 2px; font-size: 11px; color: #888780; }
-  .tick { position: absolute; transform: translateX(-50%); white-space: nowrap; }
-  .tick-left { position: absolute; left: 0; white-space: nowrap; }
-  .tick-right { position: absolute; right: 0; white-space: nowrap; text-align: right; }
+
+  /* Pledge sliders */
+  .slider-row { margin-bottom: 1rem; }
+  .slider-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+  .slider-name { color: #5f5e5a; }
+
+  /* Unit buttons */
+  .unit-btns { display: flex; gap: 4px; }
+  .unit-btn {
+    padding: 4px 10px; font-size: 12px; border: 0.5px solid rgba(0,0,0,0.2);
+    border-radius: 6px; background: #f5f4f0; color: #5f5e5a; cursor: pointer;
+  }
+  .unit-btn.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+
+  /* Stock grid */
+  .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stock-grid input[type="number"] { width: 100%; }
+  .sub-label { font-size: 12px; color: #888780; margin-bottom: 4px; }
+
+  /* Pledge bar */
+  .p-bar-track {
+    height: 22px; background: #f5f4f0; position: relative;
+    border-radius: 8px; overflow: visible;
+  }
+  .p-bar-fill { height: 100%; border-radius: 8px; transition: width 0.3s, background 0.3s; }
+  .vline {
+    position: absolute; top: -4px; width: 2px; height: 30px;
+    border-radius: 1px; transform: translateX(-50%); pointer-events: none;
+  }
+
+  /* Result table */
   .result { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-top: 1.25rem; }
   .result-section { font-size: 11px; color: #888780; letter-spacing: 0.05em; padding: 8px 0 4px; }
-  .row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.1); font-size: 14px; }
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.1); font-size: 14px;
+  }
   .row:last-child { border-bottom: none; }
   .row-label { color: #5f5e5a; }
   .row-val { font-weight: 500; }
   .danger { color: #C0392B; }
-  .warn { color: #BA7517; }
+  .warn-color { color: #BA7517; }
   .blue { color: #378ADD; }
-  hr { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 6px 0; }
+  hr.thin { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 6px 0; }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    body { padding: 1rem 0.75rem; align-items: flex-start; }
+    .container { padding: 1.25rem 1rem; border-radius: 12px; }
+    .tab { padding: 8px 14px; font-size: 13px; }
+    .input-row { flex-wrap: wrap; }
+    .input-row label { min-width: 100%; }
+    .input-row input[type="number"] { width: 100%; }
+    .input-row span { align-self: center; }
+    .mc-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .mc-value { font-size: 18px; }
+    .stock-grid { grid-template-columns: 1fr 1fr; }
+    .lev-value { font-size: 28px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>股票質押追繳計算器</h1>
 
-  <div class="slider-row">
-    <div class="slider-header">
-      <span class="slider-name">目前維持率</span>
-      <span class="slider-val"><span id="ratio-out">500</span>%</span>
-    </div>
-    <input type="range" min="130" max="600" step="1" value="500" id="ratio-slider">
-  </div>
-  <div class="slider-row">
-    <div class="slider-header">
-      <span class="slider-name">追繳線</span>
-      <span class="slider-val"><span id="call-out">140</span>%</span>
-    </div>
-    <input type="range" min="100" max="200" step="1" value="140" id="call-slider">
-  </div>
-  <div class="slider-row" style="margin-bottom:1.25rem;">
-    <div class="slider-header">
-      <span class="slider-name">第二警戒線（低於此水位需立即補繳）</span>
-      <span class="slider-val"><span id="warn-out">180</span>%</span>
-    </div>
-    <input type="range" min="100" max="249" step="1" value="180" id="warn-slider">
+  <div class="tab-bar">
+    <button class="tab active" onclick="switchTab('lev', this)">槓桿倍率計算</button>
+    <button class="tab" onclick="switchTab('pledge', this)">股票質押追繳</button>
   </div>
 
-  <div class="input-row">
-    <div class="input-label">
-      <span>借款金額</span>
-      <div class="unit-btns">
-        <button class="unit-btn" id="btn-wan" onclick="setUnit('wan')">萬元</button>
-        <button class="unit-btn active" id="btn-yuan" onclick="setUnit('yuan')">元</button>
+  <!-- 槓桿倍率 -->
+  <div id="panel-lev" class="panel active">
+    <p class="section-label">步驟 A — 曝險</p>
+    <p class="section-hint">目前所有股票的市值</p>
+    <div class="input-row">
+      <label for="l-exposure">股票市值</label>
+      <input type="number" id="l-exposure" placeholder="0" min="0" inputmode="decimal" oninput="calcLev()" />
+      <span style="font-size:13px;color:#888780">萬元</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="section-label">步驟 B — 淨資產</p>
+    <p class="section-hint">股票市值 + 現金 − 負債（含信貸、房貸、質押等所有借貸）</p>
+    <div class="input-row">
+      <label for="l-net">淨資產</label>
+      <input type="number" id="l-net" placeholder="0" min="0" inputmode="decimal" oninput="calcLev()" />
+      <span style="font-size:13px;color:#888780">萬元</span>
+    </div>
+
+    <hr class="divider" />
+
+    <p class="section-label">步驟 C — 結果</p>
+
+    <div class="gauge-wrap">
+      <svg viewBox="0 0 220 120" width="200" height="109" role="img" aria-label="槓桿倍率儀表板">
+        <defs>
+          <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#1D9E75"/>
+            <stop offset="50%" stop-color="#EF9F27"/>
+            <stop offset="80%" stop-color="#D85A30"/>
+            <stop offset="100%" stop-color="#E24B4A"/>
+          </linearGradient>
+        </defs>
+        <path d="M20,110 A90,90 0 0,1 200,110" fill="none" stroke="#d3d1c7" stroke-width="14" stroke-linecap="round"/>
+        <path id="lev-arc" d="M20,110 A90,90 0 0,1 200,110" fill="none" stroke="url(#lg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283" style="transition:stroke-dashoffset 0.5s;"/>
+        <line id="lev-needle" x1="110" y1="110" x2="110" y2="30" stroke="#888780" stroke-width="2.5" stroke-linecap="round" transform="rotate(-90,110,110)" style="transition:transform 0.5s;"/>
+        <circle cx="110" cy="110" r="5" fill="#888780"/>
+        <text x="16" y="124" font-size="10" fill="#888780" text-anchor="middle">0×</text>
+        <text x="110" y="16" font-size="10" fill="#888780" text-anchor="middle">1×</text>
+        <text x="204" y="124" font-size="10" fill="#888780" text-anchor="middle">2×</text>
+      </svg>
+      <div class="lev-value" id="lev-display" style="color:#888780">—</div>
+      <div class="lev-unit">槓桿倍率</div>
+    </div>
+
+    <div style="margin:0.75rem 0;">
+      <div style="font-size:12px;color:#888780;margin-bottom:4px">風險水位（上限 2×）</div>
+      <div class="bar-track">
+        <div class="bar-fill" id="lev-bar" style="width:0%;background:#1D9E75;"></div>
+      </div>
+      <div class="bar-markers"><span>0×</span><span>0.5×</span><span>1×</span><span>1.5×</span><span>2×</span></div>
+    </div>
+
+    <div id="z-over" class="warn-box">
+      ⚠️ 槓桿倍率超過 2×，風險極高，建議盡快減碼降槓桿至安全水位。
+    </div>
+  </div>
+
+  <!-- 股票質押 -->
+  <div id="panel-pledge" class="panel">
+
+    <div class="slider-row">
+      <div class="slider-header">
+        <span class="slider-name">目前維持率</span>
+        <span><span id="ratio-out">500</span>%</span>
+      </div>
+      <input type="range" min="130" max="600" step="1" value="500" id="ratio-slider" oninput="calcPledge()">
+    </div>
+    <div class="slider-row">
+      <div class="slider-header">
+        <span class="slider-name">追繳線</span>
+        <span><span id="call-out">140</span>%</span>
+      </div>
+      <input type="range" min="100" max="200" step="1" value="140" id="call-slider" oninput="calcPledge()">
+    </div>
+    <div class="slider-row" style="margin-bottom:1.25rem;">
+      <div class="slider-header">
+        <span class="slider-name">第二警戒線（低於此水位需立即補繳）</span>
+        <span><span id="warn-out">180</span>%</span>
+      </div>
+      <input type="range" min="100" max="249" step="1" value="180" id="warn-slider" oninput="calcPledge()">
+    </div>
+
+    <div style="margin-bottom:1.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:14px;color:#1a1a18">借款金額</span>
+        <div class="unit-btns">
+          <button class="unit-btn" id="btn-wan" onclick="setUnit('wan')">萬元</button>
+          <button class="unit-btn active" id="btn-yuan" onclick="setUnit('yuan')">元</button>
+        </div>
+      </div>
+      <input type="number" id="loan-input" value="1000000" min="1" step="1" inputmode="decimal" style="width:100%;font-size:15px;" oninput="calcPledge()">
+      <div style="font-size:12px;color:#888780;margin-top:4px;">= <span id="loan-converted">100 萬元</span></div>
+    </div>
+
+    <div style="margin-bottom:1.25rem;">
+      <div style="font-size:14px;color:#5f5e5a;margin-bottom:6px;">股票資訊（選填，自動計算維持率）</div>
+      <div class="stock-grid">
+        <div>
+          <div class="sub-label">股價（元）</div>
+          <input type="number" id="stock-price" placeholder="e.g. 85" min="0" step="0.1" inputmode="decimal" oninput="calcPledge()">
+        </div>
+        <div>
+          <div class="sub-label">持股張數</div>
+          <input type="number" id="stock-lots" placeholder="e.g. 10" min="0" step="1" inputmode="numeric" oninput="calcPledge()">
+        </div>
+      </div>
+      <div style="font-size:12px;color:#888780;margin-top:6px;" id="stock-hint"></div>
+    </div>
+
+    <div class="mc-grid">
+      <div class="mc-card">
+        <div class="mc-label">跌到追繳需跌</div>
+        <div class="mc-value danger" id="drop-call">—</div>
+        <div class="mc-unit">股票市值跌幅</div>
+      </div>
+      <div class="mc-card">
+        <div class="mc-label">跌到第二警戒需跌</div>
+        <div class="mc-value warn-color" id="drop-warn">—</div>
+        <div class="mc-unit">股票市值跌幅</div>
       </div>
     </div>
-    <input type="number" id="loan-input" value="100000" min="1" step="1" class="text-input">
-    <div style="font-size:12px;color:#888780;margin-top:4px;">= <span id="loan-converted">100 萬元</span></div>
-  </div>
 
-  <div class="input-row">
-    <div class="input-label">股票資訊（選填，自動計算維持率）</div>
-    <div class="stock-grid">
-      <div>
-        <div class="sub-label">股價（元）</div>
-        <input type="number" id="stock-price" placeholder="e.g. 85" min="0" step="0.1" class="text-input">
+    <div style="margin:0.75rem 0 0.25rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#888780;margin-bottom:6px;">
+        <span>安全空間視覺化</span>
+        <span style="display:flex;gap:10px;">
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#1D9E75;display:inline-block;"></span>安全</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#EF9F27;display:inline-block;"></span>注意</span>
+          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:#E24B4A;display:inline-block;"></span>危險</span>
+        </span>
       </div>
-      <div>
-        <div class="sub-label">持股張數</div>
-        <input type="number" id="stock-lots" placeholder="e.g. 10" min="0" step="1" class="text-input">
+      <div style="position:relative;">
+        <div class="p-bar-track">
+          <div class="p-bar-fill" id="p-bar-fill"></div>
+          <div id="p-warn-line" class="vline" style="background:#BA7517;"></div>
+          <div id="p-alert-line" class="vline" style="background:#378ADD;"></div>
+        </div>
+        <div style="position:relative;height:22px;font-size:11px;margin-top:2px;">
+          <span id="tick-warn-el" style="position:absolute;color:#BA7517;">▲ <span id="tick-warn">180</span>%</span>
+          <span id="tick-alert-el" style="position:absolute;color:#378ADD;">▲ 250%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#888780;margin-top:2px;">
+          <span>追繳 <span id="tick-call">140</span>%</span>
+          <span>目前 <span id="tick-now">500</span>%</span>
+        </div>
       </div>
     </div>
-    <div style="font-size:12px;color:#888780;margin-top:6px;" id="stock-hint"></div>
+
+    <div class="result">
+      <div class="result-section">市值水位</div>
+      <div class="row"><span class="row-label">借款金額</span><span class="row-val" id="loan-display">1,000,000</span></div>
+      <div class="row"><span class="row-label">目前擔保品市值</span><span class="row-val" id="nav-val">—</span></div>
+      <div class="row"><span class="row-label">第一警戒市值（250%）</span><span class="row-val blue" id="alert-val">—</span></div>
+      <div class="row"><span class="row-label">第二警戒市值</span><span class="row-val warn-color" id="warn-val">—</span></div>
+      <div class="row"><span class="row-label">追繳水位市值</span><span class="row-val danger" id="call-val">—</span></div>
+      <div class="row"><span class="row-label">斷頭水位市值（130%）</span><span class="row-val danger" id="liq-val">—</span></div>
+      <hr class="thin">
+      <div class="result-section">可跌空間</div>
+      <div class="row"><span class="row-label">距第二警戒可跌</span><span class="row-val warn-color" id="to-warn">—</span></div>
+      <div class="row"><span class="row-label">距追繳可跌</span><span class="row-val danger" id="to-call">—</span></div>
+      <hr class="thin">
+      <div class="result-section">被追繳後需補繳現金（補回安全水位）</div>
+      <div class="row"><span class="row-label">補回第二警戒水位</span><span class="row-val warn-color" id="repay-warn">—</span></div>
+      <div class="row"><span class="row-label">補回第一警戒水位</span><span class="row-val blue" id="repay-alert">—</span></div>
+    </div>
   </div>
 
-  <div class="mc-grid">
-    <div class="mc-card">
-      <div class="mc-label">跌到追繳需跌</div>
-      <div class="mc-value danger" id="drop-call">—</div>
-      <div class="mc-unit">股票市值跌幅</div>
-    </div>
-    <div class="mc-card">
-      <div class="mc-label">跌到第二警戒需跌</div>
-      <div class="mc-value warn" id="drop-warn">—</div>
-      <div class="mc-unit">股票市值跌幅</div>
-    </div>
-  </div>
-
-  <div class="section-title">
-    <span>安全空間視覺化</span>
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75;"></div>安全</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#EF9F27;"></div>注意</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#E24B4A;"></div>危險</div>
-    </div>
-  </div>
-  <div class="bar-wrap">
-    <div class="bar-track">
-      <div class="bar-fill" id="bar-fill"></div>
-      <div id="warn-line" class="vline" style="background:#BA7517;"></div>
-      <div id="alert-line" class="vline" style="background:#378ADD;"></div>
-    </div>
-    <div style="position:relative;height:28px;font-size:11px;margin-top:2px;">
-      <span id="tick-warn-el" style="position:absolute;color:#BA7517;">▲ <span id="tick-warn">180</span>%</span>
-      <span id="tick-alert-el" style="position:absolute;color:#378ADD;">▲ 250%</span>
-    </div>
-    <div class="bar-ticks" style="margin-bottom:4px;">
-      <span class="tick-left">追繳 <span id="tick-call">140</span>%</span>
-      <span class="tick-right">目前 <span id="tick-now">500</span>%</span>
-    </div>
-
-  </div>
-
-  <div class="result">
-    <div class="result-section">市值水位</div>
-    <div class="row"><span class="row-label">借款金額</span><span class="row-val" id="loan-display">1,000,000</span></div>
-    <div class="row"><span class="row-label">目前擔保品市值</span><span class="row-val" id="nav-val">—</span></div>
-    <div class="row"><span class="row-label">第一警戒市值（250%）</span><span class="row-val blue" id="alert-val">—</span></div>
-    <div class="row"><span class="row-label">第二警戒市值</span><span class="row-val warn" id="warn-val">—</span></div>
-    <div class="row"><span class="row-label">追繳水位市值</span><span class="row-val danger" id="call-val">—</span></div>
-    <div class="row"><span class="row-label">斷頭水位市值（130%）</span><span class="row-val danger" id="liq-val">—</span></div>
-    <hr>
-    <div class="result-section">可跌空間</div>
-    <div class="row"><span class="row-label">距第二警戒可跌</span><span class="row-val warn" id="to-warn">—</span></div>
-    <div class="row"><span class="row-label">距追繳可跌</span><span class="row-val danger" id="to-call">—</span></div>
-    <hr>
-    <div class="result-section">被追繳後需補繳現金（補回安全水位）</div>
-    <div class="row"><span class="row-label">補回第二警戒水位</span><span class="row-val warn" id="repay-warn">—</span></div>
-    <div class="row"><span class="row-label">補回第一警戒水位</span><span class="row-val blue" id="repay-alert">—</span></div>
-  </div>
 </div>
 
 <script>
-  let unit = 'yuan';
+  let pUnit = 'yuan';
 
-  function fmt(n) { return Math.round(n).toLocaleString(); }
-  function fmtWan(n) { const w = n/10000; return w >= 1 ? w.toFixed(w>=100?0:1)+' 萬元' : fmt(n)+' 元'; }
+  function switchTab(t, btn) {
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+    document.getElementById('panel-' + t).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  function getLevColor(lev) {
+    if (lev <= 1.0) return '#1D9E75';
+    if (lev <= 1.3) return '#EF9F27';
+    if (lev <= 1.8) return '#D85A30';
+    return '#E24B4A';
+  }
+
+  function calcLev() {
+    const exposure = parseFloat(document.getElementById('l-exposure').value) || 0;
+    const net = parseFloat(document.getElementById('l-net').value) || 0;
+    const leverage = net > 0 ? exposure / net : null;
+    const display = document.getElementById('lev-display');
+    const arc = document.getElementById('lev-arc');
+    const needle = document.getElementById('lev-needle');
+    const bar = document.getElementById('lev-bar');
+    const ARC = 283; const MAX = 2;
+
+    document.getElementById('z-over').style.display = 'none';
+
+    if (!leverage) {
+      display.textContent = '—'; display.style.color = '#888780';
+      arc.style.strokeDashoffset = ARC;
+      needle.setAttribute('transform', 'rotate(-90,110,110)');
+      bar.style.width = '0%'; return;
+    }
+
+    const clamped = Math.min(leverage, MAX);
+    const ratio = clamped / MAX;
+    const color = getLevColor(leverage);
+    display.textContent = leverage.toFixed(2) + '×';
+    display.style.color = color;
+    arc.style.strokeDashoffset = ARC * (1 - ratio);
+    needle.setAttribute('transform', `rotate(${-90 + ratio * 180},110,110)`);
+    bar.style.width = Math.min(ratio * 100, 100) + '%';
+    bar.style.background = color;
+
+    if (leverage > 2) {
+      document.getElementById('z-over').style.display = 'block';
+    }
+  }
 
   function getLoan() {
     const v = parseFloat(document.getElementById('loan-input').value) || 0;
-    return unit === 'wan' ? v * 10000 : v;
+    return pUnit === 'wan' ? v * 10000 : v;
+  }
+
+  function fmt(n) { return Math.round(n).toLocaleString(); }
+  function fmtWan(n) {
+    const w = n / 10000;
+    return w >= 1 ? w.toFixed(w >= 100 ? 0 : 1) + ' 萬元' : fmt(n) + ' 元';
   }
 
   function setUnit(u) {
-    unit = u;
-    document.getElementById('btn-wan').classList.toggle('active', u==='wan');
-    document.getElementById('btn-yuan').classList.toggle('active', u==='yuan');
+    pUnit = u;
+    document.getElementById('btn-wan').classList.toggle('active', u === 'wan');
+    document.getElementById('btn-yuan').classList.toggle('active', u === 'yuan');
     const cur = getLoan();
     const inp = document.getElementById('loan-input');
-    if (u === 'wan') { inp.step = 0.1; inp.value = (cur/10000).toFixed(2); }
+    if (u === 'wan') { inp.step = 0.1; inp.value = (cur / 10000).toFixed(2); }
     else { inp.step = 1; inp.value = Math.round(cur); }
-    update();
+    calcPledge();
   }
 
-  function applyRatio(r) {
-    document.getElementById('ratio-slider').value = r;
-    document.getElementById('ratio-out').textContent = r;
-    update();
-  }
-
-  function update() {
-    const ratio = parseInt(document.getElementById('ratio-slider').value);
+  function calcPledge() {
+    let ratio = parseInt(document.getElementById('ratio-slider').value);
     let callLine = parseInt(document.getElementById('call-slider').value);
     let warnLine = parseInt(document.getElementById('warn-slider').value);
-    if (warnLine <= callLine) { warnLine = callLine + 1; document.getElementById('warn-slider').value = warnLine; }
+    if (warnLine <= callLine) {
+      warnLine = callLine + 1;
+      document.getElementById('warn-slider').value = warnLine;
+    }
 
     const loan = getLoan() || 1000000;
     document.getElementById('ratio-out').textContent = ratio;
     document.getElementById('call-out').textContent = callLine;
     document.getElementById('warn-out').textContent = warnLine;
     document.getElementById('loan-display').textContent = fmt(loan);
-    document.getElementById('loan-converted').textContent = unit === 'yuan' ? fmtWan(loan) : fmt(loan) + ' 元';
+    document.getElementById('loan-converted').textContent = pUnit === 'yuan' ? fmtWan(loan) : fmt(loan) + ' 元';
 
     const nav = loan * ratio / 100;
     const alertVal = loan * 250 / 100;
@@ -213,10 +412,10 @@
     const callVal = loan * callLine / 100;
     const liqVal = loan * 130 / 100;
 
-    const dropCallVal = (1 - callLine/ratio)*100;
-    const dropWarnVal = (1 - warnLine/ratio)*100;
-    document.getElementById('drop-call').textContent = dropCallVal <= 0 ? '已觸發追繳' : dropCallVal.toFixed(1) + '%';
-    document.getElementById('drop-warn').textContent = dropWarnVal <= 0 ? '已低於警戒' : dropWarnVal.toFixed(1) + '%';
+    const dropCall = (1 - callLine / ratio) * 100;
+    const dropWarn = (1 - warnLine / ratio) * 100;
+    document.getElementById('drop-call').textContent = dropCall <= 0 ? '已觸發追繳' : dropCall.toFixed(1) + '%';
+    document.getElementById('drop-warn').textContent = dropWarn <= 0 ? '已低於警戒' : dropWarn.toFixed(1) + '%';
     document.getElementById('nav-val').textContent = fmt(nav);
     document.getElementById('alert-val').textContent = fmt(alertVal);
     document.getElementById('warn-val').textContent = fmt(warnVal);
@@ -229,70 +428,41 @@
 
     const maxR = parseInt(document.getElementById('ratio-slider').max);
     const toP = r => Math.min(98, Math.max(1, ((r - callLine) / (maxR - callLine)) * 100));
-
     const barPct = toP(ratio);
-    const fill = document.getElementById('bar-fill');
+    const fill = document.getElementById('p-bar-fill');
     fill.style.width = barPct + '%';
-    fill.style.background = ratio <= 180 ? '#E24B4A' : ratio <= 250 ? '#EF9F27' : '#1D9E75';
+    fill.style.background = ratio <= warnLine ? '#E24B4A' : ratio <= 250 ? '#EF9F27' : '#1D9E75';
 
     const warnPct = toP(warnLine);
     const alertPct = toP(250);
-    document.getElementById('warn-line').style.left = warnPct + '%';
-    document.getElementById('alert-line').style.left = alertPct + '%';
+    document.getElementById('p-warn-line').style.left = warnPct + '%';
+    document.getElementById('p-alert-line').style.left = alertPct + '%';
     const warnEl = document.getElementById('tick-warn-el');
     const alertEl = document.getElementById('tick-alert-el');
-    warnEl.style.left = warnPct + '%';
-    warnEl.style.transform = 'translateX(-4px)';
-    warnEl.style.top = '0';
-    alertEl.style.left = alertPct + '%';
-    alertEl.style.transform = 'translateX(-4px)';
-    alertEl.style.top = '0';
-    // Check overlap after positioning - if too close, stagger vertically
-    const diff = Math.abs(alertPct - warnPct);
-    if (diff < 12) {
-      warnEl.style.top = '0px';
-      alertEl.style.top = '14px';
-    }
+    warnEl.style.left = warnPct + '%'; warnEl.style.transform = 'translateX(-4px)'; warnEl.style.top = '0px';
+    alertEl.style.left = alertPct + '%'; alertEl.style.transform = 'translateX(-4px)';
+    alertEl.style.top = Math.abs(alertPct - warnPct) < 12 ? '14px' : '0px';
     document.getElementById('tick-call').textContent = callLine;
     document.getElementById('tick-warn').textContent = warnLine;
     document.getElementById('tick-now').textContent = ratio;
 
     const price = parseFloat(document.getElementById('stock-price').value);
     const lots = parseFloat(document.getElementById('stock-lots').value);
-    const ratioSliderEl = document.getElementById('ratio-slider');
+    const sliderEl = document.getElementById('ratio-slider');
     if (price > 0 && lots > 0) {
       const mktVal = price * lots * 1000;
       const calcRatio = Math.round(mktVal / loan * 100);
       document.getElementById('stock-hint').textContent = '市值 ' + fmt(mktVal) + ' 元 → 維持率約 ' + calcRatio + '%';
       const clamped = Math.min(600, Math.max(130, calcRatio));
-      ratioSliderEl.value = clamped;
-      ratioSliderEl.disabled = true;
-      ratioSliderEl.style.opacity = '0.4';
-      ratioSliderEl.style.cursor = 'not-allowed';
+      sliderEl.value = clamped; sliderEl.disabled = true;
       document.getElementById('ratio-out').textContent = clamped;
     } else {
       document.getElementById('stock-hint').textContent = '';
-      ratioSliderEl.disabled = false;
-      ratioSliderEl.style.opacity = '1';
-      ratioSliderEl.style.cursor = 'pointer';
+      sliderEl.disabled = false;
     }
   }
 
-  document.getElementById('loan-input').addEventListener('input', update);
-  ['stock-price','stock-lots'].forEach(id => document.getElementById(id).addEventListener('input', function() {
-    const price = parseFloat(document.getElementById('stock-price').value);
-    const lots = parseFloat(document.getElementById('stock-lots').value);
-    const loan = getLoan() || 100000;
-    if (price > 0 && lots > 0) {
-      const mktVal = price * lots * 1000;
-      const calcRatio = Math.round(mktVal / loan * 100);
-      const clamped = Math.min(600, Math.max(130, calcRatio));
-      document.getElementById('ratio-slider').value = clamped;
-    }
-    update();
-  }));
-  ['ratio-slider','call-slider','warn-slider'].forEach(id => document.getElementById(id).addEventListener('input', update));
-  update();
+  calcPledge();
 </script>
 </body>
 </html>
