@@ -15,8 +15,6 @@
     background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.12);
     padding: 2rem; width: 100%; max-width: 560px;
   }
-
-  /* Tabs */
   .tab-bar { display: flex; border-bottom: 0.5px solid rgba(0,0,0,0.12); margin-bottom: 1.5rem; }
   .tab {
     padding: 8px 20px; font-size: 14px; cursor: pointer; color: #888780;
@@ -26,13 +24,9 @@
   .tab.active { color: #1a1a18; border-bottom: 2px solid #1a1a18; font-weight: 500; }
   .panel { display: none; }
   .panel.active { display: block; }
-
-  /* Labels */
   .section-label { font-size: 13px; color: #5f5e5a; margin-bottom: 4px; font-weight: 500; }
   .section-hint { font-size: 12px; color: #888780; margin-bottom: 10px; }
   .divider { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 1.25rem 0; }
-
-  /* Inputs */
   .input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .input-row label { font-size: 14px; color: #1a1a18; flex: 1; }
   input[type="number"], input[type="range"] { font-family: inherit; }
@@ -51,52 +45,36 @@
     width: 18px; height: 18px; border-radius: 50%; background: #1a1a18; cursor: pointer;
   }
   input[type="range"]:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Gauge */
   .gauge-wrap { display: flex; flex-direction: column; align-items: center; margin: 0.5rem 0 0.75rem; }
   .lev-value { font-size: 32px; font-weight: 500; margin-top: -8px; }
   .lev-unit { font-size: 13px; color: #888780; margin-top: 2px; }
-
-  /* Bar */
   .bar-track {
     height: 12px; border-radius: 99px; background: #f5f4f0;
     position: relative; margin: 6px 0 4px; overflow: visible;
   }
   .bar-fill { height: 100%; border-radius: 99px; transition: width 0.4s, background 0.3s; }
   .bar-markers { display: flex; justify-content: space-between; font-size: 11px; color: #888780; margin-top: 2px; }
-
-  /* Warning */
   .warn-box {
     display: none; margin-top: 1rem; padding: 0.75rem 1rem;
     border-radius: 8px; background: #FCEBEB; font-size: 13px; color: #A32D2D;
   }
-
-  /* Metric cards */
   .mc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 1rem 0; }
   .mc-card { background: #f5f4f0; border-radius: 8px; padding: 1rem; }
   .mc-label { font-size: 13px; color: #5f5e5a; margin-bottom: 4px; }
   .mc-value { font-size: 22px; font-weight: 500; }
   .mc-unit { font-size: 12px; color: #888780; margin-top: 2px; }
-
-  /* Pledge sliders */
   .slider-row { margin-bottom: 1rem; }
   .slider-header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
   .slider-name { color: #5f5e5a; }
-
-  /* Unit buttons */
   .unit-btns { display: flex; gap: 4px; }
   .unit-btn {
     padding: 4px 10px; font-size: 12px; border: 0.5px solid rgba(0,0,0,0.2);
     border-radius: 6px; background: #f5f4f0; color: #5f5e5a; cursor: pointer;
   }
   .unit-btn.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-
-  /* Stock grid */
   .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .stock-grid input[type="number"] { width: 100%; }
   .sub-label { font-size: 12px; color: #888780; margin-bottom: 4px; }
-
-  /* Pledge bar */
   .p-bar-track {
     height: 22px; background: #f5f4f0; position: relative;
     border-radius: 8px; overflow: visible;
@@ -106,8 +84,6 @@
     position: absolute; top: -4px; width: 2px; height: 30px;
     border-radius: 1px; transform: translateX(-50%); pointer-events: none;
   }
-
-  /* Result table */
   .result { background: #f5f4f0; border-radius: 12px; padding: 1.25rem; margin-top: 1.25rem; }
   .result-section { font-size: 11px; color: #888780; letter-spacing: 0.05em; padding: 8px 0 4px; }
   .row {
@@ -122,7 +98,9 @@
   .blue { color: #378ADD; }
   hr.thin { border: none; border-top: 0.5px solid rgba(0,0,0,0.1); margin: 6px 0; }
 
-  /* Mobile */
+  /* 槓桿輸入轉換提示 */
+  .lev-converted { font-size: 12px; color: #888780; margin-top: -6px; margin-bottom: 10px; }
+
   @media (max-width: 480px) {
     body { padding: 1rem 0.75rem; align-items: flex-start; }
     .container { padding: 1.25rem 1rem; border-radius: 12px; }
@@ -153,8 +131,9 @@
     <div class="input-row">
       <label for="l-exposure">股票市值</label>
       <input type="number" id="l-exposure" placeholder="0" min="0" inputmode="decimal" oninput="calcLev()" />
-      <span style="font-size:13px;color:#888780">萬元</span>
+      <span style="font-size:13px;color:#888780">元</span>
     </div>
+    <div class="lev-converted" id="exp-converted"></div>
 
     <hr class="divider" />
 
@@ -163,8 +142,9 @@
     <div class="input-row">
       <label for="l-net">淨資產</label>
       <input type="number" id="l-net" placeholder="0" min="0" inputmode="decimal" oninput="calcLev()" />
-      <span style="font-size:13px;color:#888780">萬元</span>
+      <span style="font-size:13px;color:#888780">元</span>
     </div>
+    <div class="lev-converted" id="net-converted"></div>
 
     <hr class="divider" />
 
@@ -238,8 +218,8 @@
           <button class="unit-btn active" id="btn-yuan" onclick="setUnit('yuan')">元</button>
         </div>
       </div>
-      <input type="number" id="loan-input" value="1000000" min="1" step="1" inputmode="decimal" style="width:100%;font-size:15px;" oninput="calcPledge()">
-      <div style="font-size:12px;color:#888780;margin-top:4px;">= <span id="loan-converted">100 萬元</span></div>
+      <input type="number" id="loan-input" value="100000" min="1" step="1" inputmode="decimal" style="width:100%;font-size:15px;" oninput="calcPledge()">
+      <div style="font-size:12px;color:#888780;margin-top:4px;">= <span id="loan-converted">10 萬元</span></div>
     </div>
 
     <div style="margin-bottom:1.25rem;">
@@ -298,7 +278,7 @@
 
     <div class="result">
       <div class="result-section">市值水位</div>
-      <div class="row"><span class="row-label">借款金額</span><span class="row-val" id="loan-display">1,000,000</span></div>
+      <div class="row"><span class="row-label">借款金額</span><span class="row-val" id="loan-display">100,000</span></div>
       <div class="row"><span class="row-label">目前擔保品市值</span><span class="row-val" id="nav-val">—</span></div>
       <div class="row"><span class="row-label">第一警戒市值（250%）</span><span class="row-val blue" id="alert-val">—</span></div>
       <div class="row"><span class="row-label">第二警戒市值</span><span class="row-val warn-color" id="warn-val">—</span></div>
@@ -334,9 +314,18 @@
     return '#E24B4A';
   }
 
+  function fmtWan(n) {
+    const w = n / 10000;
+    if (n === 0) return '';
+    return w >= 1 ? '= ' + w.toFixed(w >= 100 ? 0 : 1) + ' 萬元' : '= ' + Math.round(n).toLocaleString() + ' 元';
+  }
+
   function calcLev() {
     const exposure = parseFloat(document.getElementById('l-exposure').value) || 0;
     const net = parseFloat(document.getElementById('l-net').value) || 0;
+    document.getElementById('exp-converted').textContent = fmtWan(exposure);
+    document.getElementById('net-converted').textContent = fmtWan(net);
+
     const leverage = net > 0 ? exposure / net : null;
     const display = document.getElementById('lev-display');
     const arc = document.getElementById('lev-arc');
@@ -363,9 +352,7 @@
     bar.style.width = Math.min(ratio * 100, 100) + '%';
     bar.style.background = color;
 
-    if (leverage > 2) {
-      document.getElementById('z-over').style.display = 'block';
-    }
+    if (leverage > 2) document.getElementById('z-over').style.display = 'block';
   }
 
   function getLoan() {
@@ -374,7 +361,7 @@
   }
 
   function fmt(n) { return Math.round(n).toLocaleString(); }
-  function fmtWan(n) {
+  function fmtWanLabel(n) {
     const w = n / 10000;
     return w >= 1 ? w.toFixed(w >= 100 ? 0 : 1) + ' 萬元' : fmt(n) + ' 元';
   }
@@ -394,17 +381,14 @@
     let ratio = parseInt(document.getElementById('ratio-slider').value);
     let callLine = parseInt(document.getElementById('call-slider').value);
     let warnLine = parseInt(document.getElementById('warn-slider').value);
-    if (warnLine <= callLine) {
-      warnLine = callLine + 1;
-      document.getElementById('warn-slider').value = warnLine;
-    }
+    if (warnLine <= callLine) { warnLine = callLine + 1; document.getElementById('warn-slider').value = warnLine; }
 
-    const loan = getLoan() || 1000000;
+    const loan = getLoan() || 100000;
     document.getElementById('ratio-out').textContent = ratio;
     document.getElementById('call-out').textContent = callLine;
     document.getElementById('warn-out').textContent = warnLine;
     document.getElementById('loan-display').textContent = fmt(loan);
-    document.getElementById('loan-converted').textContent = pUnit === 'yuan' ? fmtWan(loan) : fmt(loan) + ' 元';
+    document.getElementById('loan-converted').textContent = pUnit === 'yuan' ? fmtWanLabel(loan) : fmt(loan) + ' 元';
 
     const nav = loan * ratio / 100;
     const alertVal = loan * 250 / 100;
@@ -452,14 +436,22 @@
     if (price > 0 && lots > 0) {
       const mktVal = price * lots * 1000;
       const calcRatio = Math.round(mktVal / loan * 100);
-      document.getElementById('stock-hint').textContent = '市值 ' + fmt(mktVal) + ' 元 → 維持率約 ' + calcRatio + '%';
-      const clamped = Math.min(600, Math.max(130, calcRatio));
-      sliderEl.value = clamped; sliderEl.disabled = true;
-      document.getElementById('ratio-out').textContent = clamped;
+      document.getElementById('stock-hint').innerHTML = '市值 ' + fmt(mktVal) + ' 元 → 維持率約 ' + calcRatio + '% <button onclick="applyRatio(' + Math.min(600, Math.max(130, calcRatio)) + ')" style="margin-left:8px;padding:2px 8px;font-size:11px;border:0.5px solid rgba(0,0,0,0.2);border-radius:4px;background:#1a1a18;color:#fff;cursor:pointer;">套用至滑桿</button>';
+      sliderEl.disabled = true;
     } else {
       document.getElementById('stock-hint').textContent = '';
       sliderEl.disabled = false;
     }
+  }
+
+  function applyRatio(r) {
+    document.getElementById('stock-price').value = '';
+    document.getElementById('stock-lots').value = '';
+    document.getElementById('stock-hint').textContent = '';
+    document.getElementById('ratio-slider').disabled = false;
+    document.getElementById('ratio-slider').value = r;
+    document.getElementById('ratio-out').textContent = r;
+    calcPledge();
   }
 
   calcPledge();
